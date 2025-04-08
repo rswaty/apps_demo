@@ -1,0 +1,354 @@
+---
+title: "Apps Focal Landscape"
+author: "Randy Swaty and Sarah Hagen"
+format: 
+  html:
+    toc: TRUE
+editor: visual
+page-layout: full
+theme: flatly
+self-contained: TRUE
+---
+
+```{r}
+#| label: set up
+#| message: false
+#| warning: false
+#| include: false
+
+# load packages
+
+library(jsonlite)
+library(leaflet)
+library(leaflet.providers)
+library(scales)
+library(sf)
+library(terra)
+library(tidyverse)
+
+# read data
+
+# hex shapefile
+focal_hex <- st_read("inputs/focal_hex.shp", quiet = TRUE) %>%
+  st_transform(data, crs = "+proj=longlat +datum=WGS84")
+
+# landscape combined csv
+combined_data <- read_csv("inputs/Apps_Focal_DBNF_Combine.csv")
+
+
+# LANDFIRE reference conditions
+ref_con <- read_csv("inputs/ref_con_long.csv")
+
+# BpS names and model numbers
+bps_names <- read_csv("inputs/bps_model_number_name.csv")
+
+
+# List of types to include
+bps_types <- c(
+  "Allegheny-Cumberland Dry Oak Forest and Woodland",
+  "Central Interior Highlands Calcareous Glade and Barrens",
+  "Central Interior and Appalachian Floodplain Systems",
+  "Central Interior and Appalachian Riparian Systems",
+  "South-Central Interior Mesophytic Forest",
+  "Southern Appalachian Oak Forest",
+  "Southern Interior Low Plateau Dry-Mesic Oak Forest",
+  "Southern and Central Appalachian Cove Forest"
+)
+
+evt_types <- c(
+  "Allegheny-Cumberland Dry Oak Forest and Woodland",
+  "South-Central Interior Mesophytic Forest",
+  "Southern Appalachian Oak Forest",
+  "Southern Interior Low Plateau Dry-Mesic Oak Forest",
+  "Southern Appalachian Low-Elevation Pine Forest",
+  "South-Central Interior Small Stream and Riparian Forest"
+)
+
+# Filter the data
+focal_hex_filtered <- focal_hex %>%
+  filter(BPS_NAME %in% bps_types & EVT_NAME %in% evt_types)
+
+bps_colors <- c(
+  "Allegheny-Cumberland Dry Oak Forest and Woodland" = "#DDCC77",
+  "Central Interior Highlands Calcareous Glade and Barrens" = "#332288",
+  "Central Interior and Appalachian Floodplain Systems" = "#999933",
+  "Central Interior and Appalachian Riparian Systems" = "#88CCEE",
+  "South-Central Interior Mesophytic Forest" = "#117733",
+  "Southern Appalachian Oak Forest" = "#CC6677",
+  "Southern Interior Low Plateau Dry-Mesic Oak Forest" = "#D55E00",
+  "Southern and Central Appalachian Cove Forest" = "#DDDDDD"
+)
+
+evt_colors <- c(
+  "Allegheny-Cumberland Dry Oak Forest and Woodland" = "#DDCC77",
+  "South-Central Interior Mesophytic Forest" = "#117733",
+  "Southern Appalachian Oak Forest" = "#CC6677",
+  "Southern Interior Low Plateau Dry-Mesic Oak Forest" = "#D55E00",
+  "South-Central Interior Small Stream and Riparian Forest" = "#0072B2",
+  "Southern Appalachian Low-Elevation Pine Forest" = "#000000"
+)
+
+
+```
+
+## Goals and use of this document
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+## Methods
+
+-   Used Tesselation Tool to create 1km Hexgrid
+-   Used Zonal Stats table tool with Majority selected for BpS (Biophysical Settings; Historical Vegetation Types) and EVT (Existing Vegetation Types). BpS, EVT from Sarah and hexgrids were inputs.\
+-   Joined BPS_NAME and EVT_NAME to hexgrid
+-   BPS and EVT charts and map made with this data
+-   Full datasets and full datatables upon request
+
+*Done in ArcGIS for now---will move to R* <br> *Trying this as opposed to pixel-level maps to reduce file sizes, automate development of accessible maps, 'deal with' scale issues*
+
+## Historical Vegetation Types
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+```{r}
+#| label: bps chart
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+
+bps_data <- combined_data %>%
+  filter(BPS_NAME %in% bps_types) %>%
+  group_by(BPS_NAME) %>%
+  summarize(bps_count = sum(Count)) %>%
+  mutate(
+    percent = (bps_count/ sum(bps_count)) * 100,
+    acres = bps_count * 0.2223945
+  )
+
+
+
+
+max_acres <- max(bps_data$acres) * 1.1  # Add 10% padding to the maximum value
+
+
+bps_chart <-
+  ggplot(bps_data, aes(x = acres, y = reorder(BPS_NAME, acres), fill = BPS_NAME)) +
+  geom_bar(stat = "identity", color = "#adadad", linewidth = 0.2) +
+  scale_x_continuous(labels = comma, limits = c(0, max_acres)) +
+  scale_fill_manual(values = bps_colors) +
+  labs(
+    title = "Total Count of Pixels per BPS_NAME",
+    x = "Total Count",
+    y = "BPS_NAME"
+  ) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = "Top Biophysical Settings",
+    subtitle = "",
+    x = "Acres",
+    y = "",
+    caption = "Represents dominant vegetation systems pre-European colonization. \n Based on LANDFIRE's Biophysical Settings.  Data available at https://www.landfire.gov/viewer. Randy Swaty, Ecologist, rswaty@tnc.org")  +
+  theme(plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none")
+  
+
+bps_chart
+
+
+
+```
+
+<br>
+
+## Existing Vegetation Types
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+```{r}
+#| label: evt chart
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+
+evt_data <- combined_data %>%
+  filter(EVT_NAME %in% evt_types) %>%
+  group_by(EVT_NAME) %>%
+  summarize(evt_count = sum(Count)) %>%
+  mutate(
+    percent = (evt_count/ sum(evt_count)) * 100,
+    acres = evt_count * 0.2223945
+  )
+
+
+
+
+max_acres <- max(evt_data$acres) * 1.1  # Add 10% padding to the maximum value
+
+
+evt_chart <-
+  ggplot(evt_data, aes(x = acres, y = reorder(EVT_NAME, acres), fill = EVT_NAME)) +
+  geom_bar(stat = "identity", color = "#adadad", linewidth = 0.2) +
+  scale_x_continuous(labels = comma, limits = c(0, max_acres)) +
+  scale_fill_manual(values = evt_colors) +
+  labs(
+    title = "Total Count of Pixels per EVT_NAME",
+    x = "Total Count",
+    y = "EVT_NAME"
+  ) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = "Top Existing Vegetation Types",
+    subtitle = "",
+    x = "Acres",
+    y = "",
+    caption = "Represents dominant vegetation systems pre-European colonization. \n Based on LANDFIRE's Biophysical Settings.  Data available at https://www.landfire.gov/viewer. Randy Swaty, Ecologist, rswaty@tnc.org")  +
+  theme(plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none")
+  
+
+evt_chart
+
+
+
+```
+
+## Map of Historical and Existing Vegetation Types
+
+-   Zoom into area of interest
+-   Toggle layers with control in top left corner
+-   Hover over hex to get vegetation type
+-   Map for exploratory work only-BpS and EVT legends and mapping methods differ making exact comparisons dicey.
+
+```{r}
+#| label: bps and evt map
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 11
+
+pal_bps <- colorFactor(
+  palette = bps_colors,
+  domain = focal_hex_filtered$BPS_NAME
+)
+
+pal_evt <- colorFactor(
+  palette = evt_colors,
+  domain = focal_hex_filtered$EVT_NAME
+)
+
+
+# Get the bounding box of the shapefile
+bbox <- st_bbox(focal_hex_filtered)
+
+# Convert bounding box to named list
+bbox_list <- as.list(bbox)
+
+# Convert named list to JSON
+json_output <- toJSON(bbox_list, keep_vec_names = TRUE)
+
+
+
+leaflet(focal_hex_filtered) %>%
+  addTiles() %>%
+
+  fitBounds(lng1 = bbox_list$xmin, lat1 = bbox_list$ymin, lng2 = bbox_list$xmax, lat2 = bbox_list$ymax)  %>%
+
+  addPolygons(
+    fillColor = ~pal_bps(BPS_NAME),
+    color = "#BDBDC3",
+    weight = 1,
+    opacity = 1,
+    fillOpacity = 1.0,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "#666",
+      fillOpacity = 1.0,
+      bringToFront = TRUE
+    ),
+    label = ~BPS_NAME,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto"
+    ),
+    group = "Biophysical Settings"
+  ) %>%
+  addPolygons(
+    fillColor = ~pal_evt(EVT_NAME),
+    color = "#BDBDC3",
+    weight = 1,
+    opacity = 1,
+    fillOpacity = 1.0,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "#666",
+      fillOpacity = 1.0,
+      bringToFront = TRUE
+    ),
+    label = ~EVT_NAME,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto"
+    ),
+    group = "Existing Vegetation Types"
+  ) %>%
+addLayersControl(
+    overlayGroups = c("Biophysical Settings", "Existing Vegetation Types"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  hideGroup("Existing Vegetation Types") %>% # Hide this group initially
+  addScaleBar(position = "bottomleft", options = scaleBarOptions(metric = TRUE, imperial = FALSE))
+
+
+
+```
+
+## Vegetation Departure
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+```{r}
+#| label: wrangle data for VDEP
+#| message: false
+#| warning: false
+#| include: false
+
+# Reference percents and develop "foundation" dataframe (aoi_ref_con)
+
+# get list of aoi BpS model numbers
+
+aoi_bps_models <- combined_data$BPS_MODEL
+
+#subset ref_con to aoi
+aoi_ref_con <- subset(ref_con, model_code %in% aoi_bps_models)
+
+
+# Calculate current sclass percents
+
+# clean up combined data to just get BpS and Sclass counts
+current_class_percents <-  combined_data |>
+  group_by(BPS_MODEL, LABEL) |>
+  summarize(bps_scls_count = sum(Count)) |>
+  filter(BPS_MODEL != 0)
+  
+
+# calculate total count per BpS, calculate % sclass per BpS
+current_class_percents <- current_class_percents |>
+  group_by(BPS_MODEL) |>
+  mutate(bps_count = sum(bps_scls_count)) |>
+  mutate(current_percent = as.integer((bps_scls_count/bps_count)*100)) |>
+  unite(model_label, c("BPS_MODEL", "LABEL"))
+
+
+
+
+```
