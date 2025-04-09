@@ -16,12 +16,16 @@ self-contained: TRUE
 #| warning: false
 #| include: false
 
+# elimintate scientific notation in calculations
+options(scipen = 9999999)
+
 # load packages
 
 library(DT)
 library(jsonlite)
 library(leaflet)
 library(leaflet.providers)
+library(reactablefmtr)
 library(scales)
 library(sf)
 library(terra)
@@ -42,6 +46,13 @@ bps_names <- read_csv("inputs/bps_model_number_name.csv")
 bps_atts <- read_csv("inputs/LF16_BPS_200.csv") |>
   select(c(VALUE,
            BPS_MODEL))
+
+# BpS transitions-CONUS
+
+bps_transitions_all <- read_csv("inputs/bps_transitions.csv") |>
+  select(c(Model_Code,
+           annual_probability,
+           TransitionGroupID))
 
 # hex shapefile
 focal_hex <- st_read("inputs/focal_hex.shp", quiet = TRUE) |>
@@ -383,49 +394,6 @@ vdep <- vdep %>%
 ```
 
 
-```{r}
-#| label: vdep leaflet
-#| echo: false
-#| message: false
-#| warning: false
-
-vdep_for_join <- vdep |>
-  select (c(model_code,
-            vdep))
-
-
-vdep_hexs <- focal_hex_filtered |>
-  left_join(vdep_for_join, by = c("BPS_MODEL" = 'model_code'))
-
-
-vdep_pal <- colorNumeric(
-  palette = colorRampPalette(c("#1d522b", "white"))(100),
-  domain = vdep_hexs$vdep
-)
-
-
-
-leaflet(vdep_hexs) |>
-  addTiles() |>
-  fitBounds(lng1 = bbox_list$xmin, lat1 = bbox_list$ymin, lng2 = bbox_list$xmax, lat2 = bbox_list$ymax)  %>%
-  addPolygons(
-    fillColor = ~vdep_pal(vdep),
-    color = "#BDBDC3",
-    weight = 1,
-    opacity = 1,
-    fillOpacity = 1.0,
-    popup = ~paste("VDEP:", vdep)) |>
-  addLegend(
-    pal = vdep_pal,
-    values = vdep_hexs$vdep,
-    title = "VDEP",
-    position = "bottomright"
-  )
-
-
-
-```
-
 Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
 
 ```{r}
@@ -544,10 +512,92 @@ datatable(bps_model_urls, escape = FALSE, options = list(columnDefs = list(list(
 
 ```
 
+<br>
+
+
+## Historical Disturbances by BpS
+
+* filtered out situations where a disturbance had less than 1,000 acres for a BpS.  
+
+```{r}
+#| label: bps disturbances data wrangling
+#| message: false
+#| warning: false
+#| include: false
+
+bps_disturbances_aoi <- combined_data |>
+  group_by(BPS_MODEL, BPS_NAME) |>
+  summarize(bps_count = sum(Count)) |>
+  left_join(bps_transitions_all, by = c('BPS_MODEL' = 'Model_Code')) |>
+  mutate(acres = bps_count * 0.2223945,
+         dist_acres = acres * annual_probability) |>
+  filter(dist_acres >= 1000) |>
+filter(!TransitionGroupID %in% c("All Fire",
+"All Transitions",
+ "Alternative Succession",
+ "Non Fire Disturbances",
+ "Non Replacement Fire",
+"Optional 1",
+ "Optional 2")) |>
+na.omit()
 
 
 
 
+df_for_dist_table_long <- bps_disturbances_aoi |>
+  group_by(BPS_NAME, TransitionGroupID) |>
+  summarize(
+    dist_acres = round(sum(dist_acres), 0),
+    acres = round(sum(acres), 0)
+  ) |>
+  rename(
+    Biophysical_Setting = BPS_NAME,
+    Disturbance = TransitionGroupID,
+    Total_BpS_Acres = acres ,
+    Annual_Acres_Disturbed = dist_acres
+  )
+
+
+# Pivot wider
+df_for_dist_table_wide <- df_for_dist_table_long |>
+  pivot_wider(names_from = Disturbance, 
+              values_from = Annual_Acres_Disturbed, 
+              values_fill = list(Annual_Acres_Disturbed = 0)) |>
+  arrange(desc(Total_BpS_Acres)) |>
+rename_with(~ gsub(" ", "_", .))
+
+
+
+```
+
+
+```{r}
+#| label: bps disturbance table
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig_height: 10
+
+reactable(
+  df_for_dist_table_wide,
+  defaultColDef = colDef(
+    cell = data_bars(df_for_dist_table_wide, 
+                     number_fmt = scales::comma)
+  )
+)
+    
+    
+    
+    
+    
+    
+    
+  
+
+
+
+```
 
 
 
