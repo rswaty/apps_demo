@@ -1,0 +1,930 @@
+---
+title: "Apps Focal Landscape"
+author: "Randy Swaty and Sarah Hagen"
+format: 
+  html:
+    toc: TRUE
+editor: source
+page-layout: full
+theme: flatly
+self-contained: TRUE
+---
+
+```{r}
+#| label: set up
+#| message: false
+#| warning: false
+#| include: false
+
+# eliminate scientific notation in calculations
+options(scipen = 9999999)
+
+# load packages
+
+library(DT)
+library(exactextractr)
+library(jsonlite)
+library(leaflet)
+library(leaflet.providers)
+library(reactablefmtr)
+library(rlandfire)
+library(scales)
+library(sf)
+library(terra)
+library(tidyverse)
+library(tools)
+library(varhandle)
+
+# read data
+
+# LANDFIRE reference conditions
+ref_con <- read_csv("inputs/ref_con_long.csv")
+
+# BpS names and model numbers
+bps_names <- read_csv("inputs/bps_model_number_name.csv")
+
+# BpS transitions-CONUS
+
+bps_transitions_all <- read_csv("inputs/bps_transitions.csv") |>
+  select(c(Model_Code,
+           annual_probability,
+           TransitionGroupID))
+
+scls_descriptions <- read_csv("inputs/scls_descriptions.csv") |>
+  unite(model_label, c("StratumID", "ClassLabelID"), remove = FALSE)
+
+#  read shape
+shp <- st_read("inputs/hex_l5.shp", quiet = TRUE) %>% 
+  st_sf()
+
+# vect(shp)
+# plot(shp)
+
+# read in attribute tables
+
+bps_conus_atts <- read_csv("inputs/LF20_BPS_220.csv")
+evc_conus_atts <- read_csv("inputs/LF22_EVC_230_acc.csv")
+evh_conus_atts <- read_csv("inputs/LF22_EVH_230_acc.csv")
+evt_conus_atts <- read_csv("inputs/LF2024_EVT.csv")
+scls_conus_atts <- read_csv("inputs/LF23_SCla_240.csv")
+
+
+
+custom_palette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999", "#E6AB02", "#F4A582")
+
+
+
+
+```
+
+
+```{r}
+#| label: import landfire data
+#| #eval: false #### COMMENT OUT IF YOU WANT TO GET DATA
+#| message: false
+#| warning: false
+#| include: false
+
+
+
+aoi <- getAOI(shp)
+
+products <-  c("200BPS", "240SCLASS", "240EVC", "240EVH", "240EVT")
+projection <- 4326
+resolution <- 30
+
+
+# R specific arguments
+save_file <- tempfile(fileext = ".zip")
+
+# call API
+ncal <- landfireAPI(products, 
+                    aoi, 
+                    projection, 
+                    resolution, 
+                    path = save_file)
+
+# define the destination path
+dest_file <- file.path("inputs", "landfire_data.zip")
+
+# Move and rename the file
+file.rename(save_file, dest_file)
+
+# create a temporary directory for unzipping
+temp_dir <- tempfile()
+dir.create(temp_dir)
+
+# unzip the file into the temporary directory
+unzip(dest_file, exdir = temp_dir)
+
+# get the list of unzipped files
+unzipped_files <- list.files(temp_dir, full.names = TRUE)
+
+# rename each unzipped file to "landfire_data" with its full original extension
+for (file in unzipped_files) {
+  file_name <- basename(file)
+  file_extension <- sub("^[^.]*", "", file_name)  # Extract the full extension
+  new_file_path <- file.path("inputs", paste0("landfire_data", file_extension))
+  file.rename(file, new_file_path)
+}
+
+# Clean up the temporary directory
+unlink(temp_dir, recursive = TRUE)
+
+
+## Split stacked rasters ----
+
+# read in stacked raster
+stacked_rasters <- rast("inputs/landfire_data.tif")
+
+# "split" downloaded raster into separate layers
+for(lyr in names(stacked_rasters)) assign(lyr, stacked_rasters[[lyr]])
+
+
+```
+
+```{r}
+#| label: hex work for bps and evt
+#| message: false
+#| warning: false
+#| include: false
+
+
+## Calculate majority BpS and EVT per hex, join in attributes, join to hex .shp
+
+# bps
+
+# Calculate majority BpS and EVT per hex, join in attributes, join to hex .shp
+
+# bps
+bps_majority_hex <- exact_extract(US_200BPS, shp, 'majority', append_cols = "index") %>%
+  left_join(select(bps_conus_atts,
+                   VALUE,
+                   BPS_MODEL,
+                   BPS_NAME,
+                   FRI_ALLFIR),
+            by = c('majority' = 'VALUE'))
+
+# evt
+evt_majority_hex <- exact_extract(US_240EVT, shp, 'majority', append_cols = "index") %>%
+  left_join(select(evt_conus_atts,
+                   VALUE,
+                   EVT_NAME,
+                   EVT_PHYS),
+            by = c('majority' = 'VALUE'))
+
+# Join both BpS and EVT attributes to hex shapefile
+hexs_bps_evt <- shp %>%
+  left_join(bps_majority_hex, by = 'index') %>%
+  left_join(evt_majority_hex, by = 'index')
+
+
+
+```
+
+
+
+
+## Goals and use of this document
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+## Methods
+
+-   Used Tesselation Tool to create 1km Hexgrid
+-   Used Zonal Stats table tool with Majority selected for BpS (Biophysical Settings; Historical Vegetation Types) and EVT (Existing Vegetation Types). BpS, EVT from Sarah and hexgrids were inputs.\
+-   Joined BPS_NAME and EVT_NAME to hexgrid
+-   BPS and EVT charts and map made with this data
+-   Full datasets and full datatables upon request
+
+*Done in ArcGIS for now---will move to R* <br> *Trying this as opposed to pixel-level maps to reduce file sizes, automate development of accessible maps, 'deal with' scale issues*
+
+## Historical Vegetation Types
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+
+```{r}
+#| label: clip bps
+#| message: false
+#| warning: false
+#| include: false
+
+bps_aoi <- US_200BPS %>%
+  crop(shp) %>%
+  mask(shp)
+
+
+levels(bps_aoi)[[1]] <- bps_conus_atts
+activeCat(bps_aoi) <- "VALUE"
+
+
+bps_aoi_atts <- values(bps_aoi, dataframe = T, na.rm = T) %>%
+  table(dnn = "VALUE") %>%
+  as.data.frame() %>%
+  mutate_all(as.character) %>%
+  mutate_all(as.integer) %>%
+  left_join(cats(bps_aoi)[[1]], by = "VALUE") %>%
+  filter(Freq != 0) %>%
+  mutate(ACRES = round((Freq * 900 / 4046.86), 0),
+   REL_PERCENT = round((Freq / sum(Freq)), 3) * 100) %>%
+  arrange(desc(REL_PERCENT))
+
+
+```
+
+
+
+```{r}
+#| label: bps chart
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 7
+
+
+# limit bps  df to top 10
+bps_name_10 <- bps_aoi_atts %>%
+  group_by(BPS_NAME) %>%
+  summarize(ACRES = sum(ACRES),
+            REL_PERCENT = sum(REL_PERCENT)) %>%
+  arrange(desc(REL_PERCENT)) %>%
+  subset(BPS_NAME != "Open Water" & BPS_NAME != "Barren-Rock/Sand/Clay") %>%
+  distinct(BPS_NAME, .keep_all = TRUE) %>%
+  top_n(n = 10, wt = REL_PERCENT) 
+
+# set color palette
+bps_names <- unique(bps_name_10$BPS_NAME)
+
+bps_colors <- setNames(custom_palette[1:length(bps_names)], bps_names)
+
+# make chart
+bps_chart <-
+  ggplot(bps_name_10, aes(x = ACRES, y = reorder(BPS_NAME, ACRES), fill = BPS_NAME)) +
+  geom_bar(stat = "identity", color = "#adadad", linewidth = 0.2) +
+  scale_x_continuous(labels = comma) +
+  scale_fill_manual(values = bps_colors) +
+  labs(
+    title = "Total Count of Pixels per BPS_NAME",
+    x = "Total Count",
+    y = "BPS_NAME"
+  ) +
+  theme_bw(base_size = 18) +
+  labs(
+    title = "Top Biophysical Settings",
+    subtitle = "",
+    x = "Acres",
+    y = "",
+    caption = "Represents dominant vegetation systems pre-European colonization. \n Based on LANDFIRE's Biophysical Settings.  Data available at https://www.landfire.gov/viewer. Randy Swaty, Ecologist, rswaty@tnc.org")  +
+  theme(plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none")
+  
+
+bps_chart
+
+
+
+```
+
+<br>
+
+## Existing Vegetation Types
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+##NOTE: In chart below the colors match the Biophysical Settings chart when names are exacly the same.  Non-matching names will display grey bars.
+
+
+```{r}
+#| label: clip evt
+#| message: false
+#| warning: false
+#| include: false
+
+evt_aoi <- US_240EVT %>%
+  crop(shp) %>%
+  mask(shp)
+
+
+levels(evt_aoi)[[1]] <- evt_conus_atts
+activeCat(evt_aoi) <- "VALUE"
+
+
+evt_aoi_atts <- values(evt_aoi, dataframe = T, na.rm = T) %>%
+  table(dnn = "VALUE") %>%
+  as.data.frame() %>%
+  mutate_all(as.character) %>%
+  mutate_all(as.integer) %>%
+  left_join(cats(evt_aoi)[[1]], by = "VALUE") %>%
+  filter(Freq != 0) %>%
+  mutate(ACRES = round((Freq * 900 / 4046.86), 0),
+   REL_PERCENT = round((Freq / sum(Freq)), 3) * 100) %>%
+  arrange(desc(REL_PERCENT))
+
+
+```
+
+
+
+
+
+```{r}
+#| label: evt chart
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 7
+
+# limit evt  df to top 10
+evt_name_10 <- evt_aoi_atts %>%
+  group_by(EVT_NAME) %>%
+  summarize(ACRES = sum(ACRES),
+            REL_PERCENT = sum(REL_PERCENT)) %>%
+  arrange(desc(REL_PERCENT)) %>%
+  subset(EVT_NAME != "Open Water" & EVT_NAME != "Barren-Rock/Sand/Clay") %>%
+  distinct(EVT_NAME, .keep_all = TRUE) %>%
+  top_n(n = 10, wt = REL_PERCENT) 
+
+# set color palette
+bps_names <- unique(bps_name_10$BPS_NAME)
+
+bps_colors <- setNames(custom_palette[1:length(bps_names)], bps_names)
+
+
+
+
+evt_chart <-
+  ggplot(evt_name_10, aes(x = ACRES, y = reorder(EVT_NAME, ACRES), fill = EVT_NAME)) +
+  geom_bar(stat = "identity", color = "#adadad", linewidth = 0.2) +
+  scale_x_continuous(labels = comma) +
+  scale_fill_manual(values = bps_colors) +
+  labs(
+    title = "Total Count of Pixels per EVT_NAME",
+    x = "Total Count",
+    y = "EVT_NAME"
+  ) +
+  theme_bw(base_size = 18) +
+  labs(
+    title = "Top Existing Vegetation Types",
+    subtitle = "",
+    x = "Acres",
+    y = "",
+    caption = "Represents dominant vegetation systems pre-European colonization. \n Based on LANDFIRE's Biophysical Settings.  Data available at https://www.landfire.gov/viewer. Randy Swaty, Ecologist, rswaty@tnc.org")  +
+  theme(plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none")
+  
+
+evt_chart
+
+
+
+```
+
+## Map of Historical and Existing Vegetation Types
+
+-   Zoom into area of interest
+-   Toggle layers with control in top left corner
+-   Hover over hex to get vegetation type
+-   Map for exploratory work only-BpS and EVT legends and mapping methods differ making exact comparisons dicey.
+-   Hexagons are 1km^2^
+
+```{r}
+#| label: bps and evt map
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 11
+
+pal_bps <- colorFactor(
+  palette = bps_colors,
+  domain = hexs_bps_evt$BPS_NAME
+)
+
+pal_evt <- colorFactor(
+  palette = bps_colors,
+  domain = hexs_bps_evt$EVT_NAME
+)
+
+
+# Get the bounding box of the shapefile
+bbox <- st_bbox(hexs_bps_evt)
+
+# Convert bounding box to named list
+bbox_list <- as.list(bbox)
+
+# Convert named list to JSON
+json_output <- toJSON(bbox_list, keep_vec_names = TRUE)
+
+
+
+leaflet(hexs_bps_evt) %>%
+  addTiles() %>%
+
+  fitBounds(lng1 = bbox_list$xmin, lat1 = bbox_list$ymin, lng2 = bbox_list$xmax, lat2 = bbox_list$ymax) %>%
+
+  addPolygons(
+    fillColor = ~pal_bps(BPS_NAME),
+    color = "#BDBDC3",
+    weight = 1,
+    opacity = 1,
+    fillOpacity = 1.0,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "#666",
+      fillOpacity = 1.0,
+      bringToFront = TRUE
+    ),
+    label = ~BPS_NAME,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto"
+    ),
+    group = "Biophysical Settings"
+  ) %>%
+  addPolygons(
+    fillColor = ~pal_evt(EVT_NAME),
+    color = "#BDBDC3",
+    weight = 1,
+    opacity = 1,
+    fillOpacity = 1.0,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "#666",
+      fillOpacity = 1.0,
+      bringToFront = TRUE
+    ),
+    label = ~EVT_NAME,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto"
+    ),
+    group = "Existing Vegetation Types"
+  ) %>%
+addLayersControl(
+    overlayGroups = c("Biophysical Settings", "Existing Vegetation Types"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  hideGroup("Existing Vegetation Types") %>% # Hide this group initially
+  addScaleBar(position = "bottomleft", options = scaleBarOptions(metric = TRUE, imperial = FALSE))
+
+
+
+```
+
+## Vegetation Departure
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+
+```{r}
+#| label: sclass gis
+#| message: false
+#| warning: false
+#| include: false
+
+
+scls_aoi <-  US_240SCLASS %>%
+  crop(shp) %>%
+  mask(shp)
+
+
+
+levels(scls_aoi)[[1]] <- scls_conus_atts
+activeCat(scls_aoi) <- "VALUE"
+
+
+scls_aoi_atts <- values(scls_aoi, dataframe = T, na.rm = T) %>%
+  table(dnn = "VALUE") %>%
+  as.data.frame() %>%
+  mutate_all(as.character) %>%
+  mutate_all(as.integer) %>%
+  left_join(cats(scls_aoi)[[1]], by = "VALUE") %>%
+  filter(Freq != 0) %>%
+  mutate(ACRES = round((Freq * 900 / 4046.86), 0),
+   REL_PERCENT = round((Freq / sum(Freq)), 3) * 100) 
+```
+
+
+```{r}
+#| label: wrangle data for VDEP
+#| message: false
+#| warning: false
+#| include: false
+
+
+
+# get list of bps models in aoi
+aoi_bps_models <- bps_aoi_atts$BPS_MODEL
+
+#subset ref_con to aoi
+aoi_ref_con <- subset(ref_con, model_code %in% aoi_bps_models)
+
+
+# get current conditions
+df<-data.frame('bps_aoi'=as.factor(as.matrix(bps_aoi)), 
+               'scls_aoi'=as.factor(as.matrix(scls_aoi)))
+#####  compare number of rows to total count of landscape
+
+
+# calculate table
+table(df$bps_aoi, df$scls_aoi)
+
+cmbn <- subset(as.data.frame(table(bps_aoi[],scls_aoi[])), Freq != 0)
+
+
+
+cmbn$Var2 <- unfactor(cmbn$Var2)
+cmbn$Var1 <- unfactor(cmbn$Var1)
+
+#bring in s-class labels
+cmbn <- left_join(cmbn, 
+                  scls_aoi_atts %>%
+                  dplyr::select(1, 3),
+                  by = c("Var2" = "VALUE"))
+
+#bring in bps labels
+cmbn2 <- left_join(cmbn, 
+                  bps_conus_atts %>%
+                    dplyr::select(1:4),
+                  by = c("Var1" = "VALUE"))
+
+# calculate current sclass percents
+cmbn2 <- cmbn2 %>%
+  group_by(Var1, BPS_MODEL) %>%
+  mutate(total_count = sum(Freq))%>%
+  mutate(currentPercent = as.integer((Freq/total_count)*100)) %>%
+  unite(model_label, c("BPS_MODEL", "LABEL"))
+  
+
+# historic and current sclass amounts together  NEED TO HAVE ALL SCLASS COMBOS
+BPS_SCLS <- dplyr::left_join(cmbn2,
+                                 ref_con,
+                                 by = "model_label")
+# BPS_SCL misses combos where there is a current sclass missing
+
+BPS_SCLS2 <- dplyr::left_join(aoi_ref_con,
+                              cmbn2,
+                              by = "model_label")
+
+
+
+```
+
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+
+```{r}
+#| label: sclass chart
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 14
+
+
+
+bps_scls_3 <- BPS_SCLS2 %>%
+  group_by(Var1) %>%
+  mutate(total.count = sum(Freq)) %>%
+  ungroup() %>%
+  dplyr::filter(dense_rank(desc(total.count)) < 5) %>%
+  dplyr::select(c("bps_name", "ref_label",  "currentPercent", "ref_percent", "model_label")) %>%
+  pivot_longer(
+    cols = c(`ref_percent`, `currentPercent`), 
+    names_to = "refCur", 
+    values_to = "Percent"  ) |>
+  left_join(scls_descriptions)
+
+
+
+
+# order classes
+bps_scls_3$ref_label <- factor(bps_scls_3$ref_label, levels= c(
+  "Developed",
+  "Agriculture",
+  "UE",
+  "UN",
+  "E",
+  "D",
+  "C",
+  "B",
+  "A"))
+
+
+
+
+sclasplot <-
+  ggplot(bps_scls_3, aes(fill=factor(refCur), y=Percent, x=ref_label)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  coord_flip() +
+  facet_grid(. ~BpS) +
+  scale_x_discrete(limits = (levels(bps_scls_3$ref_label))) +
+  labs(
+    title = "Succession Classes past and present",
+    subtitle = "Top BpSs selected for illustration. Not all succession classes present in all BpSs",
+    caption = "\nData from landfire.gov.",
+    x = "",
+    y = "Percent")+
+  theme_minimal(base_size = 14)+
+  theme(plot.caption = element_text(hjust = 0, face= "italic"), #Default is hjust=1
+        plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot") +
+  scale_fill_manual(values = c("#3d4740", "#32a852" ), # present (grey), historical (green)
+                    name = " ", 
+                    labels = c("Present",
+                               "Past")) +
+  facet_wrap(~bps_name, nrow(3),labeller = labeller(bps_name = label_wrap_gen())) +
+    theme(panel.spacing = unit(.05, "lines"),
+        panel.border = element_rect(color = "black", fill = NA, size = 1), 
+        strip.background = element_rect(color = "black", size = 1))
+
+sclasplot
+
+
+
+
+
+```
+
+## Succession Class Descriptions
+
+Below is a table of the Succession Class descriptions for the Biophysical Settings charted above.  For complete Biophysical Settings descriptions see links on [Past](./past.html){target='blank'} page. 
+
+
+
+```{r}
+#| label: sclass descriptions
+#| echo: false
+#| message: false
+#| warning: false
+
+
+for_scl_table <-  bps_scls_3 |>
+  filter(across(everything(), ~ !is.na(.x))) |>
+  filter(str_detect(refCur, "ref")) |>
+  select(c(bps_name,
+           ref_label,
+           StateClassID,
+           Description
+           )) |>
+  distinct(Description, .keep_all = TRUE) |>
+  rename(c('Biophysical Setting' = bps_name,
+           'Class' = ref_label,
+           'Class Label' = StateClassID,
+           ))
+
+# Render the table with DT
+datatable(for_scl_table, options = list(
+  columnDefs = list(list(
+    targets = 3, # Index of the Description column (0-based)
+    render = JS("function(data, type, row, meta) {
+      return type === 'display' && data.length > 50 ? 
+        '<span title=\"' + data + '\">' + data.substr(0, 50) + '...</span>' : data;
+    }")
+  )),
+  #scrollX = TRUE,
+  autoWidth = TRUE,
+  lengthMenu = list(c(5, 10, -1), c('5', '10', 'All')) # Add options for 5, 10, and all entries
+))
+
+
+
+
+```
+
+
+## Associated Biophysical Settings descriptions
+
+Below you will find a list of Biophysical Settings (BpS) that is linked to their descriptions.  Note:
+
+* There may be multiple BpS names listed.  If so, this is because your landscape spans multiple LANDFIRE Map Zones and has multiple 'variants' for those BPSs.  
+* The names below are followed by a number in parentheses.  The first 5-digit number is the BPS Code.  The following numbers reprent the Map Zones.  For example, "13020_65_66" is ‘Laurentian-Acadian Northern Hardwoods forest’ BpS (13020) in Map Zones 65 and 66.
+* The map below will help orient you to the Map Zones for your landscape.
+
+<br>
+
+
+```{r}
+#| label: mz map
+#| echo: false
+#| message: false
+#| warning: false
+library(sf)
+library(tmap)
+
+tmap_mode("view")
+
+
+# Replace 'path_to_map_zones_shapefile' and 'path_to_additional_shapefile' with the actual paths to your shapefiles
+map_zones <- st_read("inputs/conus_mapzones_102611.shp", quiet = TRUE)
+
+
+
+map_zones <- st_transform(map_zones, crs = 4326)
+
+
+
+# Create the tmap
+
+
+tm_shape(map_zones) +
+  tm_borders(col = "black", lwd = 1) +
+  tm_text("ZONE_NUM", size = 1, col = "black", fontface = "bold") +
+  tm_shape(shp) +
+  tm_borders(col = "green", lwd = 2) +
+  tm_fill(fill = "green", fill_alpha = 0.5) +
+  tm_view(bbox = st_bbox(shp)) +
+  tm_layout(legend.show = FALSE)
+```
+
+<br>
+
+
+
+**Clicking link will initiate a download of a Microsoft Word file.  If you have any issues with this please contact [LANDFIRE](mailto:landfire@tnc.org){target="blank"}.**
+
+
+```{r}
+#| label: get bps docs
+#| echo: false
+#| message: false
+#| warning: false
+
+
+library(htmltools)
+library(dplyr)
+
+# Get unique model codes for the top 10 BPS names
+unique_model_codes <- unique(bps_aoi_atts$BPS_MODEL[bps_aoi_atts$BPS_NAME %in% bps_name_10$BPS_NAME])
+
+# Filter the dataframe to include only rows with unique model codes and top 10 BPS names
+bps_urls <- bps_aoi_atts %>% 
+  filter(BPS_MODEL %in% unique_model_codes) %>% 
+  distinct(BPS_MODEL, .keep_all = TRUE) %>%
+  select(c(BPS_NAME, BPS_MODEL))
+
+
+# Merge top_bps with bps_urls to get REL_PERCENT
+bps_urls <- bps_urls %>%
+  left_join(bps_aoi_atts |>
+              select(BPS_MODEL, REL_PERCENT), 
+            by = "BPS_MODEL")
+
+# URL template
+url_template <- "https://github.com/rswaty/bps_docs_parse/raw/main/all_bps_docs/10080_1_2_3_7.docx"
+
+# Generate URLs by replacing the model_code in the URL template
+urls <- sapply(unique_model_codes, function(code) {
+  gsub("10080_1_2_3_7", paste0(code), url_template)
+})
+
+# Create clickable hyperlinks with BPS names, model codes, and REL_PERCENT without decimal places
+clickable_names <- sapply(seq_along(urls), function(i) {
+  paste0('<a href="', urls[i], '" target="_blank">', bps_urls$BPS_NAME[i], ' (', bps_urls$BPS_MODEL[i], ') - ', round(bps_urls$REL_PERCENT[i]), '%</a>')
+})
+
+# Render the list of hyperlinked BPS names as HTML
+html_output <- HTML(paste(clickable_names, collapse = "<br>"))
+
+# Print the HTML output
+html_output
+
+
+
+
+```
+
+
+
+## Historical Disturbances by BpS
+
+* filtered out situations where a disturbance had less than 1,000 acres for a BpS.  
+
+```{r}
+#| label: bps disturbances data wrangling
+#| message: false
+#| warning: false
+#| include: false
+
+bps_disturbances_aoi <- bps_aoi_atts |>
+  group_by(BPS_MODEL, BPS_NAME) |>
+  summarize(bps_count = sum(Freq)) |>
+  left_join(bps_transitions_all, by = c('BPS_MODEL' = 'Model_Code')) |>
+  mutate(acres = bps_count * 0.2223945,
+         dist_acres = acres * annual_probability) |>
+  filter(dist_acres >= 1000) |>
+filter(!TransitionGroupID %in% c("All Fire",
+"All Transitions",
+ "Alternative Succession",
+ "Non Fire Disturbances",
+ "Non Replacement Fire",
+"Optional 1",
+ "Optional 2")) |>
+na.omit()
+
+
+
+
+df_for_dist_table_long <- bps_disturbances_aoi |>
+  group_by(BPS_NAME, TransitionGroupID) |>
+  summarize(
+    dist_acres = round(sum(dist_acres), 0),
+    acres = round(sum(acres), 0)
+  ) |>
+  rename(
+    Biophysical_Setting = BPS_NAME,
+    Disturbance = TransitionGroupID,
+    Total_BpS_Acres = acres ,
+    Annual_Acres_Disturbed = dist_acres
+  )
+
+
+# Pivot wider
+df_for_dist_table_wide <- df_for_dist_table_long |>
+  pivot_wider(names_from = Disturbance, 
+              values_from = Annual_Acres_Disturbed, 
+              values_fill = list(Annual_Acres_Disturbed = 0)) |>
+  arrange(desc(Total_BpS_Acres)) |>
+rename_with(~ gsub(" ", "_", .))
+
+
+
+```
+
+
+```{r}
+#| label: bps disturbance table
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig_height: 10
+
+reactable(
+  df_for_dist_table_wide,
+  defaultColDef = colDef(
+    cell = data_bars(df_for_dist_table_wide, 
+                     number_fmt = scales::comma)
+  )
+)
+    
+    
+    
+    
+    
+    
+    
+  
+
+
+
+```
+
+## Historical Fire Amounts
+
+
+```{r fire bar, echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+# read bps attribute table .csv and summarize
+annualFire <- bps_aoi_atts %>%
+  mutate(annual_fire_acres = ((1/FRI_ALLFIR)*ACRES)) %>%
+  filter(BPS_NAME != 'Open Water') %>%
+  group_by(BPS_NAME) %>%
+  summarize(acres = sum(annual_fire_acres)) %>%
+  arrange(desc(acres)) %>%
+  top_n(n = 10, wt = acres)
+
+# plot
+fireChart <- 
+  ggplot(data = annualFire, aes(x = BPS_NAME, y = acres)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Average Annual Acres Burned Prior to European Colonization ",
+    subtitle = "Per Biophysical Setting",
+    caption = "\nData from landfire.gov",
+    x = "",
+    y = "Acres") +
+  scale_x_discrete(limits = rev(annualFire$BPS_NAME),
+                   labels = function(x) str_wrap(x, width = 18)) +
+  scale_y_continuous(name = 'Acres', labels = comma) +
+  coord_flip() +
+  theme_bw(base_size = 14) +
+  theme(plot.margin = margin(10, 30, 0, 0))
+
+fireChart
+
+
+```
+
+
+
