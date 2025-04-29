@@ -26,7 +26,9 @@ library(exactextractr)
 library(jsonlite)
 library(leaflet)
 library(leaflet.providers)
+library(plotly)
 library(reactablefmtr)
+library(RColorBrewer)
 library(rlandfire)
 library(scales)
 library(sf)
@@ -191,13 +193,7 @@ Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapi
 
 ## Methods
 
--   Used Tesselation Tool to create 1km Hexgrid
--   Used Zonal Stats table tool with Majority selected for BpS (Biophysical Settings; Historical Vegetation Types) and EVT (Existing Vegetation Types). BpS, EVT from Sarah and hexgrids were inputs.\
--   Joined BPS_NAME and EVT_NAME to hexgrid
--   BPS and EVT charts and map made with this data
--   Full datasets and full datatables upon request
 
-*Done in ArcGIS for now---will move to R* <br> *Trying this as opposed to pixel-level maps to reduce file sizes, automate development of accessible maps, 'deal with' scale issues*
 
 ## Historical Vegetation Types
 
@@ -394,7 +390,7 @@ evt_chart
 -   Toggle layers with control in top left corner
 -   Hover over hex to get vegetation type
 -   Map for exploratory work only-BpS and EVT legends and mapping methods differ making exact comparisons dicey.
--   Hexagons are 1km^2^
+-   Hexagons are ~ 5km^2^ (1,100ac^2^)
 
 ```{r}
 #| label: bps and evt map
@@ -659,7 +655,7 @@ sclasplot
 
 ## Succession Class Descriptions
 
-Below is a table of the Succession Class descriptions for the Biophysical Settings charted above.  For complete Biophysical Settings descriptions see links on [Past](./past.html){target='blank'} page. 
+Below is a table of the Succession Class descriptions for the Biophysical Settings charted above.  For complete Biophysical Settings descriptions see links in Associated Biophysical Settings descriptions section below. 
 
 
 
@@ -775,11 +771,16 @@ bps_urls <- bps_aoi_atts %>%
   select(c(BPS_NAME, BPS_MODEL))
 
 
+
 # Merge top_bps with bps_urls to get REL_PERCENT
 bps_urls <- bps_urls %>%
   left_join(bps_aoi_atts |>
               select(BPS_MODEL, REL_PERCENT), 
             by = "BPS_MODEL")
+
+bps_urls <- bps_urls |>
+  group_by(BPS_NAME, BPS_MODEL) |>
+  summarize(REL_PERCENT = sum(REL_PERCENT))
 
 # URL template
 url_template <- "https://github.com/rswaty/bps_docs_parse/raw/main/all_bps_docs/10080_1_2_3_7.docx"
@@ -918,13 +919,143 @@ fireChart <-
                    labels = function(x) str_wrap(x, width = 18)) +
   scale_y_continuous(name = 'Acres', labels = comma) +
   coord_flip() +
-  theme_bw(base_size = 14) +
-  theme(plot.margin = margin(10, 30, 0, 0))
+  theme_bw(base_size = 14) 
 
 fireChart
 
 
 ```
+
+
+## Change in broad ecosystem types
+
+
+
+```{r}
+#| label: combine bps and evt, wrangle for sankey
+#| message: false
+#| warning: false
+#| include: false
+
+
+# Stack the rasters
+
+# Stack the rasters
+bps2evt <- c(bps_aoi, evt_aoi)
+
+
+# Extract values from the raster stack and convert them to a data frame
+bps2evt <- values(bps2evt) %>%
+  as.data.frame()
+
+# Count the frequency of unique combinations
+bps2evt <- bps2evt %>%
+  plyr::count()
+
+# # Rename columns for clarity
+# bps2evt <- bps2evt %>%
+#   rename(BPS_ID = BPS_MODEL, EVT_ID = EVT_NAME)
+
+# Calculate acres based on frequency and area conversion
+bps2evt <- bps2evt %>%
+  mutate(acres = round((freq * 900 / 4046.8564224)))
+
+bps2evt <- bps2evt %>%
+  left_join(bps_aoi_atts %>% select(VALUE, GROUPVEG), by = c('VALUE' = 'VALUE')) %>%
+  left_join(evt_aoi_atts %>% select(VALUE, EVT_PHYS), by = c('VALUE.1' = 'VALUE'))
+
+
+# Remove unwanted categories from GROUPVEG and EVT_PHYS fields
+bps2evt <- bps2evt %>%
+ filter(!GROUPVEG %in% c("Open Water", "Barren-Rock/Sand/Clay")) %>%
+ filter(!EVT_PHYS %in% c("Open Water", "Sparsely Vegetated"))
+
+
+# Lump all EVT_PHYS types with 'Developed' in the name into one category named 'Developed'
+bps2evt <- bps2evt %>%
+ mutate(EVT_PHYS = ifelse(grepl("Developed", EVT_PHYS), "Developed", EVT_PHYS))
+
+
+# Remove rows with NA values
+bps2evt <- bps2evt %>%
+  drop_na()
+
+snkyPdata <- bps2evt |>
+  group_by(GROUPVEG, EVT_PHYS) |>
+  summarize(value = sum(acres)) |>
+  rename(source = GROUPVEG,
+         target = EVT_PHYS)
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+#| label: sankey chart
+#| echo: false
+#| message: false
+#| warning: false
+
+# Concatenate "Past " to source values and "Current " to target values
+snkyPdata <- snkyPdata %>%
+  mutate(source = paste("Past", source),
+         target = paste("Current", target))
+
+# Create nodes data frame
+nodes <- data.frame(
+  name = unique(c(as.character(snkyPdata$source), as.character(snkyPdata$target)))
+)
+
+# Add source and target fields
+snkyPdata$IDsource <- match(snkyPdata$source, nodes$name) - 1
+snkyPdata$IDtarget <- match(snkyPdata$target, nodes$name) - 1
+
+# Generate colors using an accessible color palette
+num_colors <- length(nodes$name)
+colors <- brewer.pal(num_colors, "Set3")
+
+# Assign colors to nodes
+nodes$color <- colors[match(nodes$name, nodes$name)]
+
+# Make Sankey diagram
+sankey <- plot_ly(
+  type = "sankey",
+  orientation = "h",
+  node = list(
+    pad = 15,
+    thickness = 20,
+    line = list(color = "black", width = 0.5),
+    label = nodes$name,
+    color = nodes$color,
+    hovertemplate = "Acres"
+  ),
+  link = list(
+    source = snkyPdata$IDsource,
+    target = snkyPdata$IDtarget,
+    value = snkyPdata$value,
+    hovertemplate = "Acres"
+  ),
+  textfont = list(size = 16),
+  width = 850,
+  height = 900
+) %>%
+  layout(
+    title = "Change in broad ecosystem types",
+    font = list(size = 14),
+    margin = list(t = 100, l = 20, r = 20, b = 0)
+  )
+
+sankey
+
+
+```
+
 
 
 
