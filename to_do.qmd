@@ -8,7 +8,7 @@ editor: visual
 # From Jim, April 30, 2025
 
 - [ ] The title is misleading. This is not the Apps Focal Landscape so I would give it a different name based on the boundary provided
-- [ ] Left letter is truncated and the formatting looks off
+- [ ] Left letter is truncated and the formatting looks off for BPS chart
 - [ ] Ditto for the EVT graphic
 - [ ] What do the gray boxes in the Historical Disturbances chart represent?
 - [ ] I am not sure you need the chart and the horizontal bar graph. Aren’t they the same information? I will keep the bar graph if one is deleted.
