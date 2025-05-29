@@ -1,0 +1,198 @@
+[
+  {
+    "objectID": "to_do.html",
+    "href": "to_do.html",
+    "title": "to do, comments",
+    "section": "",
+    "text": "From Jim, April 30, 2025\n\nThe title is misleading. This is not the Apps Focal Landscape so I would give it a different name based on the boundary provided\nLeft letter is truncated and the formatting looks off for BPS chart\nDitto for the EVT graphic\nWhat do the gray boxes in the Historical Disturbances chart represent?\nI am not sure you need the chart and the horizontal bar graph. Aren’t they the same information? I will keep the bar graph if one is deleted.\nCurrent Riparian is truncated in the Change chart"
+  },
+  {
+    "objectID": "edge.html#historical-vegetation-types-top-10-for-the-area-of-interest",
+    "href": "edge.html#historical-vegetation-types-top-10-for-the-area-of-interest",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Vegetation Types-top 10 for the area of interest",
+    "text": "Historical Vegetation Types-top 10 for the area of interest"
+  },
+  {
+    "objectID": "edge.html#historical-disturbances-by-bps",
+    "href": "edge.html#historical-disturbances-by-bps",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Disturbances by BpS",
+    "text": "Historical Disturbances by BpS\n\nfiltered out situations where a disturbance had less than 1,000 acres for a BpS."
+  },
+  {
+    "objectID": "edge.html#historical-fire-amounts",
+    "href": "edge.html#historical-fire-amounts",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Fire Amounts",
+    "text": "Historical Fire Amounts"
+  },
+  {
+    "objectID": "edge.html#existing-vegetation-types-top-10-for-the-area-of-interest",
+    "href": "edge.html#existing-vegetation-types-top-10-for-the-area-of-interest",
+    "title": "Apps Focal Landscape",
+    "section": "Existing Vegetation Types-top 10 for the area of interest",
+    "text": "Existing Vegetation Types-top 10 for the area of interest\n\n\n\n\n\n\n\n\n\nNOTE: In chart below the colors match the Biophysical Settings chart when names are exacly the same. Non-matching names will display grey bars."
+  },
+  {
+    "objectID": "edge.html#map-of-historical-and-existing-vegetation-types",
+    "href": "edge.html#map-of-historical-and-existing-vegetation-types",
+    "title": "Apps Focal Landscape",
+    "section": "Map of Historical and Existing Vegetation Types",
+    "text": "Map of Historical and Existing Vegetation Types\n\nZoom into area of interest\nToggle layers with control in top left corner\nHover over hex to get vegetation type\nMap for exploratory work only-BpS and EVT legends and mapping methods differ making exact comparisons dicey.\nHexagons are ~ 5km2 (1,100ac2)"
+  },
+  {
+    "objectID": "edge.html#vegetation-departure",
+    "href": "edge.html#vegetation-departure",
+    "title": "Apps Focal Landscape",
+    "section": "Vegetation Departure",
+    "text": "Vegetation Departure"
+  },
+  {
+    "objectID": "edge.html#succession-class-descriptions",
+    "href": "edge.html#succession-class-descriptions",
+    "title": "Apps Focal Landscape",
+    "section": "Succession Class Descriptions",
+    "text": "Succession Class Descriptions\nBelow is a table of the Succession Class descriptions for the Biophysical Settings charted above. For complete Biophysical Settings descriptions see links in Associated Biophysical Settings descriptions section below."
+  },
+  {
+    "objectID": "edge.html#associated-biophysical-settings-descriptions",
+    "href": "edge.html#associated-biophysical-settings-descriptions",
+    "title": "Apps Focal Landscape",
+    "section": "Associated Biophysical Settings descriptions",
+    "text": "Associated Biophysical Settings descriptions\nBelow you will find a list of Biophysical Settings (BpS) that is linked to their descriptions. Note:\n\nThere may be multiple BpS names listed. If so, this is because your landscape spans multiple LANDFIRE Map Zones and has multiple ‘variants’ for those BPSs.\n\nThe names below are followed by a number in parentheses. The first 5-digit number is the BPS Code. The following numbers reprent the Map Zones. For example, “13020_65_66” is ‘Laurentian-Acadian Northern Hardwoods forest’ BpS (13020) in Map Zones 65 and 66.\nThe map below will help orient you to the Map Zones for your landscape.\n\n\n\n\n\n\n\n\n\nClicking link will initiate a download of a Microsoft Word file. If you have any issues with this please contact LANDFIRE.\n\n\nAllegheny-Cumberland Dry Oak Forest and Woodland (13170_48_53) - 32%Central Interior Highlands Calcareous Glade and Barrens (14010_43_44_47_48_53) - 3%Central Interior Highlands Dry Acidic Glade and Barrens (13630_47_53) - 2%Central Interior and Appalachian Floodplain Systems (14710_47_48_53_54_57_59_60_61_63) - 5%Central Interior and Appalachian Riparian Systems (14720_44_46_47_48) - 0%Central Interior and Appalachian Riparian Systems (14720_53_54_57_59_60) - 7%North-Central Interior Beech-Maple Forest (13130_47_50_51) - 2%South-Central Interior Mesophytic Forest (13210_47_48_53_57) - 42%Southern Appalachian Oak Forest (13150_48_53_57_59_61) - 1%Southern Interior Low Plateau Dry-Mesic Oak Forest (13050_47_48) - 2%Southern Interior Low Plateau Dry-Mesic Oak Forest (13050_53) - 0%Southern and Central Appalachian Cove Forest (13180_48_53) - 0%"
+  },
+  {
+    "objectID": "edge.html#change-in-broad-ecosystem-types",
+    "href": "edge.html#change-in-broad-ecosystem-types",
+    "title": "Apps Focal Landscape",
+    "section": "Change in broad ecosystem types",
+    "text": "Change in broad ecosystem types"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About this Project",
+    "section": "",
+    "text": "LANDFIRE (Landscape Fire and Resource Management Planning Tools) is a shared program between the U.S. Department of Agriculture Forest Service Fire and Aviation branch and the U.S. Department of the Interior. LANDFIRE provides 25+ national landscape-scale geo-spatial products, 950 vegetation models, and a suite of tools that support all-lands planning, management, and operations. Included in the product suite are current and historic conditions including ecosystem dynamic models that can be used for conservation, fire planning, and landscape management decisions.\nThe Nature Conservancy (TNC) is a Major Partner in the LANDFIRE Program supported by a cooperative agreement through USDA Forest Service. TNC’s LANDFIRE Team works closely with the LANDFIRE Business Leads, program staff, and other partners to provide support to LANDFIRE and the user community by:\n\nHelping users understand the strengths, weaknesses, and appropriate uses of LANDFIRE products.\nLocating, obtaining, and using geospatial data, tools, and models for fire and natural resource management, planning, and implementation.\nIdentifying and comparing management priorities, evaluating threats to ecosystems, and exploring outcomes under alternative management scenarios.\n\n\nTNC’s LANDFIRE Team is advancing conservation outcomes through collaborative ecosystem science by supporting LANDFIRE users as they locate, obtain and apply the diverse suite of LANDFIRE products and data.\n\nCreated by TNC Ecologist, Randy Swaty, this preliminary landscape assessment leverages LANDFIRE’s unique geospatial products to advance beneficial outcomes for the wildland fire and natural resource communities. The central data in each project are created and managed by the cooperative inter-agency/inter-organizational LANDFIRE program.\nThese charts, maps, and graphs are based on current LANDFIRE products, and provide a starting point for further analysis. All maps, input datasets and further assistance can be obtained by contacting the author, Randy Swaty.\nSubstantial code contributions for GIS data processing by Myles Walimaa."
+  },
+  {
+    "objectID": "about.html#landfire-the-nature-conservancy",
+    "href": "about.html#landfire-the-nature-conservancy",
+    "title": "About this Project",
+    "section": "",
+    "text": "LANDFIRE (Landscape Fire and Resource Management Planning Tools) is a shared program between the U.S. Department of Agriculture Forest Service Fire and Aviation branch and the U.S. Department of the Interior. LANDFIRE provides 25+ national landscape-scale geo-spatial products, 950 vegetation models, and a suite of tools that support all-lands planning, management, and operations. Included in the product suite are current and historic conditions including ecosystem dynamic models that can be used for conservation, fire planning, and landscape management decisions.\nThe Nature Conservancy (TNC) is a Major Partner in the LANDFIRE Program supported by a cooperative agreement through USDA Forest Service. TNC’s LANDFIRE Team works closely with the LANDFIRE Business Leads, program staff, and other partners to provide support to LANDFIRE and the user community by:\n\nHelping users understand the strengths, weaknesses, and appropriate uses of LANDFIRE products.\nLocating, obtaining, and using geospatial data, tools, and models for fire and natural resource management, planning, and implementation.\nIdentifying and comparing management priorities, evaluating threats to ecosystems, and exploring outcomes under alternative management scenarios.\n\n\nTNC’s LANDFIRE Team is advancing conservation outcomes through collaborative ecosystem science by supporting LANDFIRE users as they locate, obtain and apply the diverse suite of LANDFIRE products and data.\n\nCreated by TNC Ecologist, Randy Swaty, this preliminary landscape assessment leverages LANDFIRE’s unique geospatial products to advance beneficial outcomes for the wildland fire and natural resource communities. The central data in each project are created and managed by the cooperative inter-agency/inter-organizational LANDFIRE program.\nThese charts, maps, and graphs are based on current LANDFIRE products, and provide a starting point for further analysis. All maps, input datasets and further assistance can be obtained by contacting the author, Randy Swaty.\nSubstantial code contributions for GIS data processing by Myles Walimaa."
+  },
+  {
+    "objectID": "about.html#biophysical-settings-products",
+    "href": "about.html#biophysical-settings-products",
+    "title": "About this Project",
+    "section": "Biophysical Settings Products",
+    "text": "Biophysical Settings Products\nA Biophysical Setting (BpS) is a concept that represents the vegetation that may have been dominant on the landscape prior to European colonization of North America and is based on both the current biophysical environment and an approximation of the historical disturbance regime.\n\nLANDFIRE collaborated with experts around the country to create a description and model for every BpS in the US. Find BpS descriptions for your area here.\nCheck out the vegetation modeling website to learn how to integrate BpS into your work.\nRead Blankenship et al. (2021) to learn how the models and descriptions were developed."
+  },
+  {
+    "objectID": "about.html#vegetation-products",
+    "href": "about.html#vegetation-products",
+    "title": "About this Project",
+    "section": "Vegetation Products",
+    "text": "Vegetation Products\nLANDFIRE (LF) existing vegetation layers describe the following elements: Existing Vegetation Type (EVT), Existing Vegetation Canopy Cover (EVC), and Existing Vegetation Height (EVH). These layers are created using predictive landscape models based on extensive field-referenced data, satellite imagery and biophysical gradient layers using classification and regression trees.\n\nResources\n\nExisting Vegetation Cover\nExisting Vegetation Height\nExisting Vegetation Type"
+  },
+  {
+    "objectID": "about.html#still-have-questions-landfire-is-here-to-help.",
+    "href": "about.html#still-have-questions-landfire-is-here-to-help.",
+    "title": "About this Project",
+    "section": "Still have questions? LANDFIRE is here to help.",
+    "text": "Still have questions? LANDFIRE is here to help.\nAsk the LANDFIRE Helpdesk\nSearch the LANDFIRE Helpdesk Dashboard (see what others are asking and find solutions to common problems)\nSearch (& subscribe to) the LANDFIRE YouTube Channel (see tutorials, Office Hours, quick demonstrations)"
+  },
+  {
+    "objectID": "dbnf.html#historical-vegetation-types-top-10-for-the-area-of-interest",
+    "href": "dbnf.html#historical-vegetation-types-top-10-for-the-area-of-interest",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Vegetation Types-top 10 for the area of interest",
+    "text": "Historical Vegetation Types-top 10 for the area of interest"
+  },
+  {
+    "objectID": "dbnf.html#historical-disturbances-by-bps",
+    "href": "dbnf.html#historical-disturbances-by-bps",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Disturbances by BpS",
+    "text": "Historical Disturbances by BpS\n\nfiltered out situations where a disturbance had less than 1,000 acres for a BpS."
+  },
+  {
+    "objectID": "dbnf.html#historical-fire-amounts",
+    "href": "dbnf.html#historical-fire-amounts",
+    "title": "Apps Focal Landscape",
+    "section": "Historical Fire Amounts",
+    "text": "Historical Fire Amounts"
+  },
+  {
+    "objectID": "dbnf.html#existing-vegetation-types-top-10-for-the-area-of-interest",
+    "href": "dbnf.html#existing-vegetation-types-top-10-for-the-area-of-interest",
+    "title": "Apps Focal Landscape",
+    "section": "Existing Vegetation Types-top 10 for the area of interest",
+    "text": "Existing Vegetation Types-top 10 for the area of interest\n\n\n\n\n\n\n\n\n\nNOTE: In chart below the colors match the Biophysical Settings chart when names are exacly the same. Non-matching names will display grey bars."
+  },
+  {
+    "objectID": "dbnf.html#map-of-historical-and-existing-vegetation-types",
+    "href": "dbnf.html#map-of-historical-and-existing-vegetation-types",
+    "title": "Apps Focal Landscape",
+    "section": "Map of Historical and Existing Vegetation Types",
+    "text": "Map of Historical and Existing Vegetation Types\n\nZoom into area of interest\nToggle layers with control in top left corner\nHover over hex to get vegetation type\nMap for exploratory work only-BpS and EVT legends and mapping methods differ making exact comparisons dicey.\nHexagons are ~ 5km2 (1,100ac2)"
+  },
+  {
+    "objectID": "dbnf.html#vegetation-departure",
+    "href": "dbnf.html#vegetation-departure",
+    "title": "Apps Focal Landscape",
+    "section": "Vegetation Departure",
+    "text": "Vegetation Departure"
+  },
+  {
+    "objectID": "dbnf.html#succession-class-descriptions",
+    "href": "dbnf.html#succession-class-descriptions",
+    "title": "Apps Focal Landscape",
+    "section": "Succession Class Descriptions",
+    "text": "Succession Class Descriptions\nBelow is a table of the Succession Class descriptions for the Biophysical Settings charted above. For complete Biophysical Settings descriptions see links in Associated Biophysical Settings descriptions section below."
+  },
+  {
+    "objectID": "dbnf.html#associated-biophysical-settings-descriptions",
+    "href": "dbnf.html#associated-biophysical-settings-descriptions",
+    "title": "Apps Focal Landscape",
+    "section": "Associated Biophysical Settings descriptions",
+    "text": "Associated Biophysical Settings descriptions\nBelow you will find a list of Biophysical Settings (BpS) that is linked to their descriptions. Note:\n\nThere may be multiple BpS names listed. If so, this is because your landscape spans multiple LANDFIRE Map Zones and has multiple ‘variants’ for those BPSs.\n\nThe names below are followed by a number in parentheses. The first 5-digit number is the BPS Code. The following numbers reprent the Map Zones. For example, “13020_65_66” is ‘Laurentian-Acadian Northern Hardwoods forest’ BpS (13020) in Map Zones 65 and 66.\nThe map below will help orient you to the Map Zones for your landscape.\n\n\n\n\n\n\n\n\n\nClicking link will initiate a download of a Microsoft Word file. If you have any issues with this please contact LANDFIRE.\n\n\nAllegheny-Cumberland Dry Oak Forest and Woodland (13170_48_53) - 56%Appalachian (Hemlock-)Northern Hardwood Forest (13700_53_61_62) - 0%Central Interior Highlands Calcareous Glade and Barrens (14010_43_44_47_48_53) - 0%Central Interior and Appalachian Floodplain Systems (14710_47_48_53_54_57_59_60_61_63) - 2%Central Interior and Appalachian Riparian Systems (14720_44_46_47_48) - 0%Central Interior and Appalachian Riparian Systems (14720_53_54_57_59_60) - 7%Central Interior and Appalachian Swamp Systems (14790_41_42_47_48_50_51_53) - 0%South-Central Interior Mesophytic Forest (13210_47_48_53_57) - 30%Southern Appalachian Low-Elevation Pine Forest (13530_46_48_53_54_57_59_60_61) - 0%Southern Appalachian Low-Elevation Pine Forest (13530_47) - 0%Southern Appalachian Oak Forest (13150_48_53_57_59_61) - 2%Southern Interior Low Plateau Dry-Mesic Oak Forest (13050_47_48) - 0%Southern Interior Low Plateau Dry-Mesic Oak Forest (13050_53) - 1%Southern and Central Appalachian Cove Forest (13180_48_53) - 1%"
+  },
+  {
+    "objectID": "dbnf.html#change-in-broad-ecosystem-types",
+    "href": "dbnf.html#change-in-broad-ecosystem-types",
+    "title": "Apps Focal Landscape",
+    "section": "Change in broad ecosystem types",
+    "text": "Change in broad ecosystem types"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Appalachians LANDFIRE Demo",
+    "section": "",
+    "text": "These LANDFIRE-Powered Landscape Assessments allow users to start exploring trends, landscape conversion and natural resource management options."
+  },
+  {
+    "objectID": "index.html#goals-of-this-demonstration",
+    "href": "index.html#goals-of-this-demonstration",
+    "title": "Appalachians LANDFIRE Demo",
+    "section": "Goals of this demonstration",
+    "text": "Goals of this demonstration\nWe will use LANDFIRE products to:\n\nCharacterize and map past and present ecosystem conditions.\nExplore historical disturbance patterns.\nDevelop R-based processing and visualization\n\nThe following charts, maps, and graphs are based on current LANDFIRE products, and provide a starting point for further analysis."
+  },
+  {
+    "objectID": "index.html#location-of-this-demonstration",
+    "href": "index.html#location-of-this-demonstration",
+    "title": "Appalachians LANDFIRE Demo",
+    "section": "Location of this demonstration",
+    "text": "Location of this demonstration"
+  },
+  {
+    "objectID": "index.html#how-to-use-this-web-report",
+    "href": "index.html#how-to-use-this-web-report",
+    "title": "Appalachians LANDFIRE Demo",
+    "section": "How to use this web report",
+    "text": "How to use this web report\n\nAll maps, input datasets and further assistance can be obtained by contacting the author, Randy Swaty.\nReview is ongoing.\nTo share this web app, simply share the hyperlink.\nToggle between dark and light display of this site in the upper right corner of the page.\nLearn more about LANDFIRE and The Nature Conservancy here."
+  }
+]

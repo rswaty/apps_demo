@@ -1,0 +1,29 @@
+project:
+  type: website
+  output-dir: docs
+  preview: 
+    watch-inputs: false
+
+website:
+  title: "LANDFIRE-Powered Landscape Assessment"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: dbnf.qmd
+        text: Daniel Boone NF
+      - href: edge.qmd
+        text: Edge landscape
+      - href: about.qmd
+        text: About
+
+format:
+  html:
+    theme: 
+      light: flatly
+      dark: darkly
+    css: styles.css
+    toc: true
+
+editor: source
+

@@ -1,0 +1,87 @@
+---
+title: "Appalachians LANDFIRE Demo"
+author: "Randy Swaty with substantial code contributions from Myles Walimaa"
+---
+
+<font size="4"> 
+**These LANDFIRE-Powered Landscape Assessments allow users to start exploring trends, landscape conversion and natural resource management options. **
+
+</font> 
+
+
+## Goals of this demonstration
+
+We will use [LANDFIRE](https://landfire.gov/){target="blank"} products to:
+
+1. Characterize and map past and present ecosystem conditions.
+2. Explore historical disturbance patterns.
+3. Develop R-based processing and visualization
+
+
+The following charts, maps, and graphs are based on current LANDFIRE products, and provide a starting point for further analysis.
+
+
+
+
+## Location of this demonstration
+
+<br>
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+
+library(foreign)
+library(sf)
+library(terra)
+library(tidyverse)
+library(raster)
+
+
+```
+
+
+```{r read shapefile, message=FALSE, warning=FALSE, include=FALSE}
+#  read shape
+dnbf <- st_read("inputs/dbnf_hex_l5.shp") %>% 
+  st_transform(crs = 5070) %>%
+  st_union() %>%
+  st_sf()
+
+
+edge <- st_read("inputs/edge_hex_l5.shp") %>% 
+  st_transform(crs = 5070) %>%
+  st_union() %>%
+  st_sf()
+
+
+
+```
+
+```{r locator map, message=FALSE, warning=FALSE, echo=FALSE}
+library(tmap)
+
+# toggle tmap mode to interactive viewing
+tmap_mode("view")
+
+# create a quick interactive map
+quickmap <- tm_shape(dnbf) +
+            tm_borders(col = 'darkgreen') +
+            tm_shape(edge) +
+            tm_borders( col = "blue") +
+            tm_layout(title = 'Apps demo landscapes, Edge (blue) and Daniel Boone Nf (green)')
+
+
+
+quickmap
+
+
+
+
+```
+
+## How to use this web report
+
+* All maps, input datasets and further assistance can be obtained by contacting the author, [Randy Swaty](mailto:rswaty@tnc.org){target="blank"}.
+* Review is ongoing.
+* To share this web app, simply share the hyperlink.
+* Toggle between dark and light display of this site in the upper right corner of the page.
+* Learn more about LANDFIRE and The Nature Conservancy [here](about.qmd){target="blank}. 
